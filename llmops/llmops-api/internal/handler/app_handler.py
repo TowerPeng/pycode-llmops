@@ -9,14 +9,18 @@ import os
 import uuid
 from dataclasses import dataclass
 
+from click import prompt
 from injector import inject
 from openai import OpenAI
 from flask import request
+
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_qwq import ChatQwen
+from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
 from internal.exception import FailException
 from internal.schema.app_schema import CompletionReq
 from internal.service import AppService
 from pkg.response import success_json, validate_error_json, success_message
-
 
 @inject
 @dataclass
@@ -49,21 +53,33 @@ class AppHandler:
             return validate_error_json(req.errors)
         # query = request.json.get("query");
 
-        # 2.构建OpenAI客户端，并发起请求
-        client = OpenAI(base_url=os.getenv("ALIAI_API_BASE"),
-                        api_key=os.getenv("ALIAI_API_KEY"))
+        prompt = ChatPromptTemplate.from_template("{query}")
 
-        # 3.得到请求响应，然后将OpenAI的响应传递给前端
-        completion = client.chat.completions.create(
-            # 模型列表：https://help.aliyun.com/zh/model-studio/getting-started/models
-            model="qwen-turbo",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": req.query.data},
-            ]
+        # 2.构建llm客户端，并发起请求
+        llm = ChatQwen(
+            model="qwen-plus",
+            base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"  # 国际站
         )
+        ai_message = llm.invoke(prompt.invoke({"query": req.query.data}))
 
-        content = completion.choices[0].message.content
+        parser = StrOutputParser ()
+        content = parser.invoke(ai_message)
+
+        # # 2.构建OpenAI客户端，并发起请求
+        # client = OpenAI(base_url=os.getenv("ALIAI_API_BASE"),
+        #                 api_key=os.getenv("ALIAI_API_KEY"))
+        #
+        # # 3.得到请求响应，然后将OpenAI的响应传递给前端
+        # completion = client.chat.completions.create(
+        #     # 模型列表：https://help.aliyun.com/zh/model-studio/getting-started/models
+        #     model="qwen-plus",
+        #     messages=[
+        #         {"role": "system", "content": "You are a helpful assistant."},
+        #         {"role": "user", "content": req.query.data},
+        #     ]
+        # )
+        #
+        # content = completion.choices[0].message.content
 
         return success_json({"content": content})
 

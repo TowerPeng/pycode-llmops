@@ -18,8 +18,7 @@ llm = ChatQwen(
     base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"  # 国际站
 )
 
-ai_messages = llm.batch([prompt.invoke({"query": "你好，你是？"}),
-           prompt.invoke({"query": "请讲一个程序猿的冷笑话"})])
-for ai_messages in ai_messages:
-    print(ai_messages.content)
-    print("================")
+response = llm.stream(prompt.invoke({"query": "你能简单介绍一下LLM和LLMOPS吗？"}))
+
+for chunk in response:
+    print(chunk.content,flush= True,end="")

@@ -14,7 +14,7 @@ prompt = ChatPromptTemplate.from_messages([
 
 #2.创建大语言模型
 llm = ChatQwen(
-    model="qwen-turbo",
+    model="qwen-plus",
     base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"  # 国际站
 )
 

@@ -12,7 +12,6 @@ from injector import inject
 
 from internal.handler import AppHandler
 
-
 @inject
 @dataclass
 class Router:
