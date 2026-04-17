@@ -60,10 +60,19 @@ class AppHandler:
             model="qwen-plus",
             base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"  # 国际站
         )
-        ai_message = llm.invoke(prompt.invoke({"query": req.query.data}))
+
 
         parser = StrOutputParser ()
-        content = parser.invoke(ai_message)
+
+        #3.构建链
+        chain = prompt | llm | parser
+
+        #4.调用链得到结果
+        content = chain.invoke({"query": req.query.data})
+
+        # content = parser.invoke(ai_message)
+
+        # ai_message = llm.invoke(prompt.invoke({"query": req.query.data}))
 
         # # 2.构建OpenAI客户端，并发起请求
         # client = OpenAI(base_url=os.getenv("ALIAI_API_BASE"),
